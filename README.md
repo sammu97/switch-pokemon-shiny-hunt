@@ -43,7 +43,7 @@ Required software:
 Clone the repo:
 
 ```
-git clone https://github.com/YOUR_USERNAME/shiny-bot.git
+git clone https://github.com/satoshi831/shiny-bot.git
 cd shiny-bot
 ```
 
@@ -243,3 +243,4 @@ Example:
 - You must **manually save the shiny Pokémon**
 - Display sleep is safe, but **system sleep must be disabled**
 ```
+
