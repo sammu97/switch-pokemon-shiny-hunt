@@ -1,0 +1,47 @@
+# Third Party Software Notices
+
+This project uses the following open source software.
+
+---
+
+## OpenCV
+
+License: Apache License 2.0
+
+https://opencv.org/
+
+---
+
+## NumPy
+
+License: BSD License
+
+https://numpy.org/
+
+---
+
+## Raspberry Pi Pico SDK
+
+License: BSD-3-Clause
+
+https://github.com/raspberrypi/pico-sdk
+
+---
+
+## TinyUSB
+
+License: MIT License
+
+https://github.com/hathach/tinyusb
+
+---
+
+## lwIP TCP/IP Stack
+
+License: BSD License
+
+https://savannah.nongnu.org/projects/lwip/
+
+---
+
+Each library retains its respective license and copyright.
