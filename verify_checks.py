@@ -3,21 +3,21 @@ import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 import shutil
+import re
 
 CHECKS_DIR = Path(__file__).resolve().parent / "shiny_checks"
 ANOMALIES_DIR = Path(__file__).resolve().parent / "shiny_anomalies"
+BASELINE_IMG_NAME = "attempt_0_baseline.png"
+BASELINE_IMG_PATH = CHECKS_DIR / BASELINE_IMG_NAME
 
 def main():
-    attempt_files = sorted(list(CHECKS_DIR.glob("attempt_*.png")), key=lambda p: int(p.stem.split('_')[1]))
-    if not attempt_files:
-        print("No attempt images found in the 'shiny_checks' folder.")
+    if not BASELINE_IMG_PATH.exists():
+        print(f"Error: Baseline image {BASELINE_IMG_PATH} not found.")
         return
 
-    # Use the first image found as the baseline
-    baseline_path = attempt_files[0]
-    baseline_img = cv2.imread(str(baseline_path))
+    baseline_img = cv2.imread(str(BASELINE_IMG_PATH))
     if baseline_img is None:
-        print(f"Error: Could not read baseline image: {baseline_path.name}")
+        print("Error: Could not read baseline image.")
         return
 
     # Clear or create the anomalies directory
@@ -26,12 +26,23 @@ def main():
         shutil.rmtree(ANOMALIES_DIR)
     ANOMALIES_DIR.mkdir(parents=True, exist_ok=True)
 
-    print(f"Using baseline image: {baseline_path.name}")
-    print(f"Found {len(attempt_files)} images to check. Scanning...")
+    print(f"Using baseline image: {BASELINE_IMG_NAME}")
+    
+    # Get only the cleaned sprites for comparison
+    attempt_files = sorted(
+        [p for p in CHECKS_DIR.glob("attempt_*_cleaned.png")],
+        key=lambda p: int(re.search(r'(\d+)', p.name).group(1))
+    )
+    
+    if not attempt_files:
+        print("No '_cleaned.png' images found to check.")
+        return
+        
+    print(f"Found {len(attempt_files)} cleaned sprites to check. Scanning...")
     
     anomalies = []
     
-    for file_path in tqdm(attempt_files[1:], desc="Comparing images"):
+    for file_path in tqdm(attempt_files, desc="Comparing images"):
         img = cv2.imread(str(file_path))
         if img is None:
             print(f"Warning: Could not read {file_path.name}")
