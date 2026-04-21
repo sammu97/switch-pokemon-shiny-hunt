@@ -1,0 +1,5 @@
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm-install/pioasm/pioasm
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm-install/pioasm/pioasmTargets.cmake
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm-install/pioasm/pioasmTargets-release.cmake
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm-install/pioasm/pioasmConfig.cmake
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm-install/pioasm/pioasmConfigVersion.cmake

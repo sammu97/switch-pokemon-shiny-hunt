@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/CMakeFiles/picotoolBuild"
+		},
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/CMakeFiles/picotoolBuild.rule"
+		},
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/CMakeFiles/picotoolBuild-complete.rule"
+		},
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/picotool/src/picotoolBuild-stamp/picotoolBuild-build.rule"
+		},
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/picotool/src/picotoolBuild-stamp/picotoolBuild-configure.rule"
+		},
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/picotool/src/picotoolBuild-stamp/picotoolBuild-download.rule"
+		},
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/picotool/src/picotoolBuild-stamp/picotoolBuild-install.rule"
+		},
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/picotool/src/picotoolBuild-stamp/picotoolBuild-mkdir.rule"
+		},
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/picotool/src/picotoolBuild-stamp/picotoolBuild-patch.rule"
+		},
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/picotool/src/picotoolBuild-stamp/picotoolBuild-test.rule"
+		},
+		{
+			"file" : "/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/picotool/src/picotoolBuild-stamp/picotoolBuild-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"picotoolBuild"
+		],
+		"name" : "picotoolBuild"
+	}
+}

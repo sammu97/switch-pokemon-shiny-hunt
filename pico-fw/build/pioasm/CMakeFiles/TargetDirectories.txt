@@ -1,0 +1,7 @@
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm/CMakeFiles/pioasm.dir
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm/CMakeFiles/edit_cache.dir
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm/CMakeFiles/rebuild_cache.dir
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm/CMakeFiles/list_install_components.dir
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm/CMakeFiles/install.dir
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm/CMakeFiles/install/local.dir
+/Users/jordan.sammut/Documents/Work/shiny-bot/pico-fw/build/pioasm/CMakeFiles/install/strip.dir

@@ -1,0 +1,36 @@
+{
+  "pico_server": {
+    "url": "http://192.168.1.95:8080"
+  },
+  "timing": {
+    "reset_time": 3.0,
+    "load_time": 0.5,
+    "text_time": 0.5,
+    "long_text_time": 1.0,
+    "default_time": 0.5,
+    "random_delay_max_seconds": 2.0
+  },
+  "shiny_check": {
+    "capture_index": 0,
+    "target_pokemon": "0004",
+    "opponent_sprite_roi": {
+      "x1": 400,
+      "y1": 234,
+      "x2": 920,
+      "y2": 613
+    },
+    "summary_sprite_roi": {
+      "x1": 400,
+      "y1": 234,
+      "x2": 785,
+      "y2": 604,
+      "flip_horizontally": true
+    }
+  },
+  "notifications": {
+    "ntfy_topic": "jordan-shiny-bot-fr-lg"
+  },
+  "hunt_loop": {
+    "default_total_runtime_seconds": 79200
+  }
+}
