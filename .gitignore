@@ -1,2 +1,5 @@
 /shiny_checks/
 /shiny_anomalies/
+hunt_state.json
+encounter_time.txt
+encounter_count.txt

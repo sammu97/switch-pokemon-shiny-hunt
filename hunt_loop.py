@@ -137,6 +137,10 @@ def main():
     # --- Initialization ---
     print("Press ESC at any time to stop.\n")
 
+    # Create shiny_checks directory if it doesn't exist and set permissions
+    CHECKS_DIR.mkdir(exist_ok=True)
+    os.chmod(CHECKS_DIR, 0o777) # Set wide-open permissions to prevent write errors
+
     # Load Palette Database early to catch errors
     if not DB_PATH.exists():
         print(f"FATAL: Palette database not found at {DB_PATH}.")
@@ -144,9 +148,6 @@ def main():
     with open(DB_PATH, "r", encoding="utf-8") as f:
         db = json.load(f)
     print("Palette database loaded.")
-
-    # Create shiny_checks directory if it doesn't exist
-    CHECKS_DIR.mkdir(exist_ok=True)
 
     # Initialize video capture
     cap = cv2.VideoCapture(CAPTURE_INDEX)
@@ -272,8 +273,14 @@ def main():
 
             if stop_requested: break
             
-            time.sleep(2) 
-            ret, frame = cap.read()
+            time.sleep(2)
+            
+            # Flush the buffer by rapidly grabbing a few frames
+            for _ in range(5):
+                cap.grab()
+            
+            ret, frame = cap.read() # Now grab the fresh frame
+
             if not ret:
                 print("Warning: Failed to capture frame.")
                 continue
@@ -284,7 +291,6 @@ def main():
                 continue
             
             # Save the full frame and cleaned sprite for verification
-            # Use os.chmod to make sure the files are easily deletable by any user
             full_img_path = str(CHECKS_DIR / f"attempt_{attempt}_full.png")
             cleaned_img_path = str(CHECKS_DIR / f"attempt_{attempt}_cleaned.png")
             
