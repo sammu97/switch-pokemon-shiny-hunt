@@ -199,10 +199,43 @@ def identify_from_scene(scene_path: str, db: dict):
         print(f"Error reading scene: {e}")
         return
 
-    is_shiny = is_shiny_from_frame(scene_img, db, SHINY_CHECK_CONFIG["target_pokemon"], "summary_sprite_roi", debug_windows=True)
-    
-    if is_shiny is not None:
-        print(f"\nFinal Result: The Pokémon is likely {'SHINY' if is_shiny else 'NORMAL'}")
+    cleaned_sprite = clean_sprite_from_frame(scene_img, "summary_sprite_roi")
+    if cleaned_sprite is None:
+        print("Warning: Could not create a clean sprite for analysis.")
+        return
+
+    live_palette = extract_palette(cleaned_sprite)
+    if not live_palette:
+        print("Warning: Could not extract a palette from the cleaned sprite.")
+        return
+
+    # Try to load the user's baseline palette for comparison
+    baseline_path = BASE_DIR / "shiny_checks" / "baseline_palette.json"
+    if baseline_path.exists():
+        with open(baseline_path, "r") as f:
+            baseline_palette = json.load(f)
+        
+        dist_to_baseline = palette_distance(live_palette, baseline_palette)
+        shiny_found = dist_to_baseline > 150.0
+        
+        print("\n--- Baseline Comparison Result ---")
+        print(f"Distance to your normal baseline: {dist_to_baseline:.2f}")
+        print(f"Is it considered Shiny (>150 distance)? {shiny_found}")
+        print("----------------------------------")
+    else:
+        print("\nNote: 'shiny_checks/baseline_palette.json' not found.")
+        print("Run 'python3 hunt_loop.py' at least once to create a baseline.")
+
+    target_pokemon_id = SHINY_CHECK_CONFIG["target_pokemon"]
+    target_palettes = db.get(target_pokemon_id)
+    if target_palettes:
+        dist_to_shiny_db = palette_distance(live_palette, target_palettes["shiny"])
+        print(f"For reference, distance to perfect Shiny {target_pokemon_id} in DB: {dist_to_shiny_db:.2f}")
+
+    cv2.imshow("Cleaned Sprite", cleaned_sprite)
+    print("Press any key to close the preview window.")
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
