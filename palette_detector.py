@@ -21,17 +21,17 @@ SHINY_CHECK_CONFIG = CONFIG["shiny_check"]
 def clean_sprite_from_frame(frame: np.ndarray, roi_key: str) -> np.ndarray | None:
     """
     Crops a frame to a specified ROI, flips if necessary, and removes the background
-    by using the colors of the outer boundary pixels as a mask.
+    by using OpenCV's FloodFill algorithm starting from the corners.
     Returns a clean sprite with an alpha channel.
     """
     roi = SHINY_CHECK_CONFIG[roi_key]
-    
+
     if roi['y2'] > frame.shape[0] or roi['x2'] > frame.shape[1]:
         print(f"FATAL ERROR: ROI '{roi_key}' is outside the image bounds.")
         return None
-        
-    cropped_sprite = frame[roi["y1"]:roi["y2"], roi["x1"]:roi["x2"]]
-    
+
+    cropped_sprite = frame[roi["y1"]:roi["y2"], roi["x1"]:roi["x2"]].copy()
+
     if cropped_sprite.size == 0:
         print(f"FATAL ERROR: ROI '{roi_key}' is empty. Check coordinates.")
         return None
@@ -39,47 +39,76 @@ def clean_sprite_from_frame(frame: np.ndarray, roi_key: str) -> np.ndarray | Non
     if roi.get("flip_horizontally", False):
         cropped_sprite = cv2.flip(cropped_sprite, 1)
 
-    border_pixels = np.concatenate([
-        cropped_sprite[0, :], cropped_sprite[-1, :],
-        cropped_sprite[:, 0], cropped_sprite[:, -1],
-    ])
-    unique_border_colors = set(tuple(color) for color in border_pixels)
-    
-    combined_mask = np.zeros(cropped_sprite.shape[:2], dtype=np.uint8)
-    tolerance = 15
-    for color in unique_border_colors:
-        lower_bound = tuple(max(0, int(c) - tolerance) for c in color)
-        upper_bound = tuple(min(255, int(c) + tolerance) for c in color)
-        mask = cv2.inRange(cropped_sprite, np.array(lower_bound), np.array(upper_bound))
-        combined_mask = cv2.bitwise_or(combined_mask, mask)
+    # 1. Setup for FloodFill
+    h, w = cropped_sprite.shape[:2]
 
+    # OpenCV's floodFill requires a mask that is exactly 2 pixels wider and taller than the image
+    mask = np.zeros((h + 2, w + 2), dtype=np.uint8)
+
+    # Tolerance for background color variations (handles capture card noise/compression)
+    tolerance = (15, 15, 15)
+
+    # 2. FloodFill from all four corners
+    # This ensures we catch the whole background even if a floating sprite particle blocks a path
+    corners = [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]
+
+    for corner in corners:
+        cv2.floodFill(
+            image=cropped_sprite,
+            mask=mask,
+            seedPoint=corner,
+            newVal=(0, 0, 0),  # Safely pass a dummy value to avoid Python TypeErrors
+            loDiff=tolerance,
+            upDiff=tolerance,
+            # Flags:
+            # 4 = check 4 neighboring pixels (up, down, left, right)
+            # (255 << 8) = fill the mask with the value 255 (white)
+            # cv2.FLOODFILL_MASK_ONLY = do not modify the original image, just update the mask
+            flags=4 | (255 << 8) | cv2.FLOODFILL_MASK_ONLY
+        )
+
+    # 3. Apply the mask to create transparency
+    # The mask is 2 pixels larger, so we slice it [1:-1, 1:-1] to match the sprite's dimensions
+    background_mask = mask[1:-1, 1:-1]
+
+    # Convert to BGRA (adds the alpha channel)
     cleaned_sprite = cv2.cvtColor(cropped_sprite, cv2.COLOR_BGR2BGRA)
-    cleaned_sprite[combined_mask == 255] = [0, 0, 0, 0]
-    
+
+    # Wherever the floodfill mask is 255 (the background), set the BGRA values to transparent [0,0,0,0]
+    cleaned_sprite[background_mask == 255] = [0, 0, 0, 0]
+
     return cleaned_sprite
 
-def extract_palette(image: np.ndarray, n_colors: int = 4) -> list[tuple[int, int, int]] | None:
-    """Extracts the 'n' most dominant colors from an image with transparency."""
-    if image.shape[2] != 4:
-        print("Error: extract_palette requires an image with an alpha channel.")
-        return None
-        
-    bgr_channels = image[:, :, :3]
-    alpha_channel = image[:, :, 3]
-    opaque_mask = alpha_channel > 0
-    pixels = bgr_channels[opaque_mask]
 
-    if len(pixels) < n_colors:
+def extract_palette(image: np.ndarray, n_colors: int = 4) -> list[tuple[float, float, float]] | None:
+    # Safely handle images that don't have an alpha channel (like downloaded database sprites)
+    if image.shape[2] == 4:
+        bgr_channels = image[:, :, :3]
+        alpha_channel = image[:, :, 3]
+        opaque_mask = alpha_channel > 0
+        
+        if not np.any(opaque_mask):
+            return None
+            
+        pixels_to_convert = bgr_channels[opaque_mask]
+    else:
+        pixels_to_convert = image.reshape(-1, 3)
+
+    if len(pixels_to_convert) < n_colors:
         return None
+
+    # Convert the 1D list of BGR pixels into a 2D format cvtColor expects (1, N, 3)
+    pixels_2d = np.uint8([pixels_to_convert])
+    
+    # Convert BGR to LAB color space
+    lab_pixels = cv2.cvtColor(pixels_2d, cv2.COLOR_BGR2LAB)[0]
 
     kmeans = KMeans(n_clusters=n_colors, random_state=42, n_init='auto')
-    kmeans.fit(pixels)
-    
-    palette_bgr = kmeans.cluster_centers_
-    palette_rgb = [tuple(int(c) for c in color) for color in palette_bgr[:, ::-1]]
-    palette_rgb.sort(key=lambda c: sum(c))
-    
-    return palette_rgb
+    kmeans.fit(lab_pixels)
+
+    # Return the LAB palette centers as floats for JSON serialization
+    palette_lab = kmeans.cluster_centers_
+    return [tuple(float(c) for c in color) for color in palette_lab]
 
 def palette_distance(palette1: list, palette2: list) -> float:
     """Calculates the 'distance' between two unordered palettes."""
