@@ -27,7 +27,9 @@ def press_button(button: str, delay: float = None):
         host = parsed_url.hostname
         port = parsed_url.port
 
-        body = f"press {button} 120"
+        # Randomize how long the button is physically held down (between 80ms and 160ms)
+        hold_time = random.randint(80, 160)
+        body = f"press {button} {hold_time}"
 
         # Construct the raw HTTP request, identical to the working curl command
         request = (
@@ -61,10 +63,26 @@ def reset_game():
         print(f"Reset failed: {e}")
         time.sleep(5)
 
-def wait(seconds: float):
-    """Waits for a specified number of seconds."""
-    print(f"Waiting {seconds}s")
-    time.sleep(seconds)
+
+def wait(seconds: float, max_jitter_seconds: float = 0.2):
+    """
+    Pauses execution for a specified number of seconds, with capped random jitter.
+
+    :param seconds: The base amount of time to wait.
+    :param max_jitter_seconds: The absolute maximum time (in seconds) the jitter can add or subtract.
+    """
+    # Calculate a base percentage-based jitter (between -10% and +15% of the wait time)
+    raw_jitter = random.uniform(-0.10, 0.15) * seconds
+
+    # Clamp (limit) the jitter so it never exceeds your maximum allowance
+    # For example, if max_jitter is 0.2, the jitter is forced to stay between -0.2 and 0.2
+    capped_jitter = max(-max_jitter_seconds, min(raw_jitter, max_jitter_seconds))
+
+    # Calculate the final wait time, ensuring it never accidentally drops below 0.1s
+    actual_wait = max(0.1, seconds + capped_jitter)
+
+    print(f"Waiting {actual_wait:.3f}s (base: {seconds}s, jitter: {capped_jitter:+.3f}s)")
+    time.sleep(actual_wait)
 
 # --- Sequence ---
 

@@ -3,3 +3,5 @@
 hunt_state.json
 encounter_time.txt
 encounter_count.txt
+
+__pycache__/switch_control.cpython-313.pyc
