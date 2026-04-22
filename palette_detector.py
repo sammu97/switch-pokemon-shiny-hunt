@@ -131,17 +131,30 @@ def is_shiny_from_frame(frame: np.ndarray, db: dict, target_pokemon_id: str, roi
     if not live_palette:
         return False
 
-    target_palettes = db.get(target_pokemon_id)
-    if not target_palettes:
-        print(f"Warning: Target Pokémon '{target_pokemon_id}' not in database.")
-        return False
+    # Try to load the user's baseline palette for comparison
+    baseline_path = BASE_DIR / "shiny_checks" / "baseline_palette.json"
+    if baseline_path.exists():
+        with open(baseline_path, "r") as f:
+            baseline_palette = json.load(f)
+        
+        dist_to_baseline = palette_distance(live_palette, baseline_palette)
+        print(f"Dist to Baseline Normal: {dist_to_baseline:.2f}")
 
-    dist_normal = palette_distance(live_palette, target_palettes["normal"])
-    dist_shiny = palette_distance(live_palette, target_palettes["shiny"])
+        # It's a shiny if it is significantly different from the live baseline.
+        is_shiny = dist_to_baseline > 150.0
+    else:
+        print("Warning: No baseline found. Falling back to DB comparison.")
+        target_palettes = db.get(target_pokemon_id)
+        if not target_palettes:
+            print(f"Warning: Target Pokémon '{target_pokemon_id}' not in database.")
+            return False
 
-    is_shiny = (dist_shiny < dist_normal * 0.85) and (dist_shiny < 1000)
-    
-    print(f"Match for {target_pokemon_id}: Normal Dist: {dist_normal:.2f}, Shiny Dist: {dist_shiny:.2f} -> Shiny? {is_shiny}")
+        dist_normal = palette_distance(live_palette, target_palettes["normal"])
+        dist_shiny = palette_distance(live_palette, target_palettes["shiny"])
+        
+        is_shiny = (dist_shiny < dist_normal * 0.85) and (dist_shiny < 1000)
+        print(f"Match for {target_pokemon_id}: Normal Dist: {dist_normal:.2f}, Shiny Dist: {dist_shiny:.2f} -> Shiny? {is_shiny}")
+
 
     if debug_windows:
         cv2.imshow("Cleaned Sprite", cleaned_sprite)
@@ -216,21 +229,23 @@ def identify_from_scene(scene_path: str, db: dict):
             baseline_palette = json.load(f)
         
         dist_to_baseline = palette_distance(live_palette, baseline_palette)
-        shiny_found = dist_to_baseline > 150.0
         
         print("\n--- Baseline Comparison Result ---")
         print(f"Distance to your normal baseline: {dist_to_baseline:.2f}")
+        
+        shiny_found = dist_to_baseline > 150.0
         print(f"Is it considered Shiny (>150 distance)? {shiny_found}")
-        print("----------------------------------")
+        
+        print("---------------------------------------")
     else:
         print("\nNote: 'shiny_checks/baseline_palette.json' not found.")
         print("Run 'python3 hunt_loop.py' at least once to create a baseline.")
 
-    target_pokemon_id = SHINY_CHECK_CONFIG["target_pokemon"]
-    target_palettes = db.get(target_pokemon_id)
-    if target_palettes:
-        dist_to_shiny_db = palette_distance(live_palette, target_palettes["shiny"])
-        print(f"For reference, distance to perfect Shiny {target_pokemon_id} in DB: {dist_to_shiny_db:.2f}")
+        target_pokemon_id = SHINY_CHECK_CONFIG["target_pokemon"]
+        target_palettes = db.get(target_pokemon_id)
+        if target_palettes:
+            dist_to_shiny_db = palette_distance(live_palette, target_palettes["shiny"])
+            print(f"For reference, distance to perfect Shiny {target_pokemon_id} in DB: {dist_to_shiny_db:.2f}")
 
     cv2.imshow("Cleaned Sprite", cleaned_sprite)
     print("Press any key to close the preview window.")

@@ -161,6 +161,11 @@ def main():
         print("--- Performing a single test run ---")
         run_starter_sequence()
         time.sleep(2) # Wait for summary screen
+        
+        # Flush buffer
+        for _ in range(5):
+            cap.grab()
+            
         ret, frame = cap.read()
         if ret:
             cv2.imwrite("test_capture.png", frame)
@@ -204,6 +209,11 @@ def main():
          
          run_starter_sequence()
          time.sleep(2)
+         
+         # Flush the buffer by rapidly grabbing a few frames
+         for _ in range(5):
+             cap.grab()
+             
          ret, frame = cap.read()
          if not ret:
              print("FATAL: Failed to capture frame during first run.")
@@ -291,6 +301,7 @@ def main():
                 continue
             
             # Save the full frame and cleaned sprite for verification
+            # Use os.chmod to make sure the files are easily deletable by any user
             full_img_path = str(CHECKS_DIR / f"attempt_{attempt}_full.png")
             cleaned_img_path = str(CHECKS_DIR / f"attempt_{attempt}_cleaned.png")
             
@@ -306,25 +317,19 @@ def main():
                  print("Warning: Could not extract a palette from the cleaned sprite.")
                  continue
 
-            target_palettes = db.get(TARGET_POKEMON)
-            if not target_palettes:
-                 print(f"FATAL: Target Pokémon '{TARGET_POKEMON}' not in database.")
-                 sys.exit(1)
-
             dist_to_baseline = palette_distance(live_palette, baseline_palette)
-            dist_to_shiny_db = palette_distance(live_palette, target_palettes["shiny"])
             
-            print(f"Dist to Baseline Normal: {dist_to_baseline:.2f}, Dist to Shiny DB: {dist_to_shiny_db:.2f}")
+            print(f"Dist to Baseline Normal: {dist_to_baseline:.2f}")
 
-            # It's a shiny if it's significantly closer to the shiny DB palette than our live baseline
-            shiny_found = (dist_to_shiny_db < dist_to_baseline * 0.85) and (dist_to_shiny_db < 1000)
+            # It's a shiny if it is significantly different from the live baseline.
+            shiny_found = dist_to_baseline > 150.0
 
             session_runtime = int(time.time() - start_time)
             total_runtime = previous_runtime + session_runtime
 
             if shiny_found:
                 save_state(attempt, total_runtime)
-                message = f"Shiny {TARGET_POKEMON} found after {attempt} attempts!"
+                message = f"Shiny {TARGET_POKEMON} found after {attempt} attempts! (Dist: {dist_to_baseline:.2f})"
                 print(f"\n✨ {message} — STOPPING BOT ✨")
                 send_notification(message)
                 
