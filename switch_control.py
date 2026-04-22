@@ -76,7 +76,8 @@ def run_starter_sequence():
     wait(TIMING["boot_to_title_screen_delay"])
 
     # 🔥 Main seed variation point
-    seed_delay = random.uniform(0.5, 3.0)
+    max_delay = TIMING.get("random_delay_max_seconds", 3.0)
+    seed_delay = random.uniform(0.5, max_delay)
     print(f"Seed delay: {seed_delay:.3f}s")
     time.sleep(seed_delay)
 

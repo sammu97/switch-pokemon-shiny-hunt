@@ -343,6 +343,7 @@ def main():
     finally:
         stop_requested = True
         cap.release()
+        cv2.destroyAllWindows() # Destroy any lingering OpenCV windows
         if not args.test_run:
             session_runtime = int(time.time() - start_time)
             total_runtime = previous_runtime + session_runtime

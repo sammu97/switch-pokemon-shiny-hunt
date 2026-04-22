@@ -7,7 +7,7 @@
     "load_time": 0.5,
     "text_time": 0.5,
     "default_time": 0.5,
-    "random_delay_max_seconds": 2.0
+    "random_delay_max_seconds": 3.0
   },
   "shiny_check": {
     "capture_index": 0,
