@@ -183,9 +183,21 @@ def main():
                 print("Warning: Failed to capture frame.")
                 continue
 
+            # Save the full frame
             full_img_path = str(CHECKS_DIR / f"attempt_{attempt}_full.png")
             cv2.imwrite(full_img_path, frame)
             os.chmod(full_img_path, 0o666)
+
+            # --- NEW: Extract and save the ROI frame for live monitoring ---
+            roi = SHINY_CHECK_CONFIG["summary_sprite_roi"]
+            roi_box = frame[roi["y1"]:roi["y2"], roi["x1"]:roi["x2"]]
+
+            roi_img_path = str(CHECKS_DIR / f"attempt_{attempt}_roi.png")
+            if roi_box.size > 0:
+                cv2.imwrite(roi_img_path, roi_box)
+                os.chmod(roi_img_path, 0o666)
+            else:
+                print("Warning: ROI Box is empty, skipping saving ROI preview.")
 
             # Check for the star
             shiny_found = is_shiny_from_frame(frame, "summary_sprite_roi")
@@ -199,7 +211,10 @@ def main():
                 print(f"\n✨ {message} — STOPPING BOT ✨")
                 send_notification(message)
 
+                # Rename the files to have the SHINY prefix so they are easy to spot
                 Path(full_img_path).rename(CHECKS_DIR / f"SHINY_FOUND_attempt_{attempt}_full.png")
+                if Path(roi_img_path).exists():
+                    Path(roi_img_path).rename(CHECKS_DIR / f"SHINY_FOUND_attempt_{attempt}_roi.png")
                 break
             else:
                 print("No star found. Looping again...")
